@@ -1,0 +1,10 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: Fetch Log files from manage node to control node
+    fetch:
+      src: /var/log/syslog
+      dest: /home/rausan/CPE243_ausan/Logfile/
