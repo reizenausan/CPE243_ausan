@@ -1,0 +1,45 @@
+---
+- name: Create Certificate Authority with SSL
+  hosts: Server1  
+  become: true
+
+  tasks:
+
+  - name: Install OpenSSL
+    apt:
+      name: openssl
+      state: present
+
+  - name: Generate CA key
+    openssl_privatekey:
+      path: /etc/ssl/private/ca.key
+      size: 4096
+    register: ca_key
+
+  - name: Generate CA certificate
+    openssl_csr:
+      path: /etc/ssl/certs/ca.csr
+      privatekey_path: /etc/ssl/private/ca.key
+      common_name: "My CA"
+      country_name: "PH"
+      state_or_province_name: "Metro Manila"
+      locality_name: "Quezon City"
+      organization_name: "Technological Institute of the Philippines"
+      email_address: "qrkdausan@tip.edu.ph"
+    register: ca_csr
+
+  - name: Self-sign the CA certificate
+    openssl_certificate:
+      path: /etc/ssl/certs/ca.crt
+      privatekey_path: /etc/ssl/private/ca.key
+      csr_path: /etc/ssl/certs/ca.csr
+      provider: selfsigned
+      force: true
+
+  - name: Copy the CA certificate to clients
+    copy:
+      src: /etc/ssl/certs/ca-certificates.crt
+      dest: /etc/pki/ca-trust/source/anchors/
+    notify:
+      - Update CA trust
+
